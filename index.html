@@ -249,7 +249,7 @@
         let db = null, storage = null;
         let unsubscribeSnapshot = null;
         let inventoryData = [];
-        let selectedImageFile = null;
+        let selectedImageBase64 = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             initFirebaseDirectly();
@@ -260,7 +260,11 @@
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                storage = getStorage(app);
+                try {
+                    storage = getStorage(app);
+                } catch(e) {
+                    console.warn("Storage not initialized", e);
+                }
                 setupFirestoreListener();
             } catch (err) {
                 console.error("Firebase init error:", err);
@@ -308,19 +312,47 @@
         window.handleImageSelection = function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            selectedImageFile = file;
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('imagePreviewTag').src = e.target.result;
-                document.getElementById('thumbnailContainer').classList.remove('hidden');
-                document.getElementById('photoFileName').textContent = file.name.substring(0, 15) + '... ✓';
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400;
+                    const MAX_HEIGHT = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                    document.getElementById('imagePreviewTag').src = selectedImageBase64;
+                    document.getElementById('thumbnailContainer').classList.remove('hidden');
+                    document.getElementById('photoFileName').textContent = (file.name || 'Photo').substring(0, 15) + '... ✓';
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
         window.clearPhoto = function() {
-            selectedImageFile = null;
+            selectedImageBase64 = null;
             document.getElementById('cameraInput').value = '';
             document.getElementById('galleryInput').value = '';
             document.getElementById('thumbnailContainer').classList.add('hidden');
@@ -336,7 +368,7 @@
 
         window.handleFormSubmit = async function(event) {
             event.preventDefault();
-            if (!db || !storage) {
+            if (!db) {
                 showToast('Error', 'Firebase connection not initialized.', 'error');
                 return;
             }
@@ -349,15 +381,13 @@
             const salePrice = buyPrice + (buyPrice * (marginPercent / 100));
             const editId = document.getElementById('editId').value;
 
-            showLoading(true, editId ? 'Updating cloud record...' : 'Uploading photo & saving to cloud...');
+            showLoading(true, editId ? 'Updating cloud record...' : 'Saving to cloud database...');
 
             try {
                 let photoUrl = editId ? (inventoryData.find(i => i.id === editId)?.photoUrl || '') : '';
 
-                if (selectedImageFile) {
-                    const storageRef = ref(storage, `artifacts/diwali_lights_app/lights/${Date.now()}_${selectedImageFile.name}`);
-                    const uploadResult = await uploadBytes(storageRef, selectedImageFile);
-                    photoUrl = await getDownloadURL(uploadResult.ref);
+                if (selectedImageBase64) {
+                    photoUrl = selectedImageBase64; // Instantly ready and lightning fast
                 }
 
                 const itemData = {
@@ -380,7 +410,7 @@
                     showToast('Success', 'Cloud item updated successfully!');
                 } else {
                     await addDoc(collectionRef, itemData);
-                    showToast('Success', 'Item uploaded to Firebase cloud!');
+                    showToast('Success', 'Item saved to Firebase cloud!');
                 }
 
                 resetForm();
@@ -415,6 +445,7 @@
             document.getElementById('marginPercent').value = item.marginPercent;
 
             if (item.photoUrl) {
+                selectedImageBase64 = item.photoUrl;
                 document.getElementById('imagePreviewTag').src = item.photoUrl;
                 document.getElementById('thumbnailContainer').classList.remove('hidden');
                 document.getElementById('photoFileName').textContent = 'Cloud photo attached ✓';
@@ -508,7 +539,7 @@
             }
 
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "ID,Timestamp,Light Name,Length,Breadth,Buy Price (INR),Margin (%),Sale Price (INR),Photo URL\r\n";
+            csvContent += "ID,Timestamp,Light Name,Length,Breadth,Buy Price (INR),Margin (%),Sale Price (INR)\r\n";
 
             inventoryData.forEach(item => {
                 const row = [
@@ -519,8 +550,7 @@
                     `"${item.breadth || ''}"`,
                     item.buyPrice || 0,
                     item.marginPercent || 0,
-                    item.salePrice || 0,
-                    `"${item.photoUrl || ''}"`
+                    item.salePrice || 0
                 ];
                 csvContent += row.join(",") + "\r\n";
             });
