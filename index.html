@@ -67,7 +67,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-slate-300 mb-1">Item Name / Title *</label>
-                                <input type="text" id="itemName" required placeholder="e.g. LED Strip / Tool / Stock" 
+                                <input type="text" id="itemName" required placeholder="e.g. Stock / Tool / Component" 
                                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
                             </div>
                             <div>
@@ -137,7 +137,7 @@
 
                 <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
                     <span id="dbStatusText">Cloud Database Sync Active</span>
-                    <span class="text-blue-400"><i class="fa-solid fa-shield-check"></i> Secure</span>
+                    <span class="text-blue-400 font-medium">Developed by Er . shadow</span>
                 </div>
             </section>
 
@@ -160,6 +160,7 @@
                     </div>
                 </div>
 
+                <!-- Search and Date Range Filter Bar -->
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-md flex flex-col xl:flex-row gap-2 items-center">
                     <div class="relative flex-1 w-full">
                         <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
@@ -179,7 +180,7 @@
                             <i class="fa-solid fa-rotate-right"></i>
                         </button>
                     </div>
-                    <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 whitespace-nowrap w-full xl:w-auto justify-center">
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 whitespace-nowrap w-full xl:w-auto justify-center">
                         <i class="fa-solid fa-file-excel"></i> Export Excel
                     </button>
                 </div>
@@ -222,6 +223,7 @@
         Developed by <span class="text-blue-400 font-semibold">Er . shadow</span>
     </footer>
 
+    <!-- Photo Source Modal -->
     <div id="photoSourceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closePhotoSourceModal()">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xs p-5 shadow-2xl space-y-3" onclick="event.stopPropagation()">
             <div class="text-center pb-2 border-b border-slate-800">
@@ -238,6 +240,7 @@
         </div>
     </div>
 
+    <!-- Image Fullscreen Modal -->
     <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
         <div class="relative max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl space-y-3" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center">
@@ -254,6 +257,7 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex flex-col items-center justify-center">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl flex flex-col items-center space-y-3">
             <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -261,6 +265,7 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-blue-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
         <div id="toastIcon" class="text-blue-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
         <div>
@@ -607,7 +612,7 @@
                     photoThumbHTML = `<span class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-600 text-xs"><i class="fa-solid fa-image-slash"></i></span>`;
                 }
 
-                // Ensure display format is DD-MM-YYYY HH:MM:SS
+                // Ensure strict DD-MM-YYYY HH:MM:SS format for display
                 let displayTime = item.timestamp || '-';
                 if (displayTime.includes('/')) {
                     const parts = displayTime.split(',');
@@ -642,19 +647,60 @@
             });
         }
 
-        window.exportToCSV = function() {
+        window.exportToExcel = function() {
             if (inventoryData.length === 0) {
                 showToast('Notice', 'No data available to export.', 'info');
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,";
-            // Header with interactive columns
-            csvContent += "ID,Timestamp (DD-MM-YYYY HH:MM:SS),Item Name,Category,Size,Specs,Buy Price (INR),Margin (%),Sale Price (INR),Photo Count,Photos Data\r\n";
+            // Build an interactive XML Spreadsheet (.xls) that supports styled colored headers and clean borders
+            let xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Header">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Interior ss:Color="#2563EB" ss:Pattern="Solid"/>
+   <Font ss:FontName="Inter" ss:Color="#FFFFFF" ss:Bold="1" ss:Size="10"/>
+  </Style>
+  <Style ss:ID="RowData">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+   <Font ss:FontName="Inter" ss:Size="10"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Inventory Report">
+  <Table>
+   <Row>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">ID</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Timestamp (DD-MM-YYYY)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Item Name</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Category</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Size</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Specs</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Buy Price (INR)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Margin (%)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Sale Price (INR)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Photo Count</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Photo Data / Link</Data></Cell>
+   </Row>`;
 
             inventoryData.forEach(item => {
-                const photosArr = item.photos || (item.photoUrl ? [item.photoUrl] : []);
-                
                 let timeStr = item.timestamp || '';
                 if (timeStr.includes('/')) {
                     const parts = timeStr.split(',');
@@ -669,31 +715,40 @@
                     }
                 }
 
-                const row = [
-                    item.id,
-                    `"${timeStr}"`,
-                    `"${(item.name || '').replace(/"/g, '""')}"`,
-                    `"${(item.category || '').replace(/"/g, '""')}"`,
-                    `"${item.length || ''}"`,
-                    `"${item.breadth || ''}"`,
-                    item.buyPrice || 0,
-                    item.marginPercent || 0,
-                    item.salePrice || 0,
-                    photosArr.length,
-                    `"${photosArr.length > 0 ? photosArr[0].slice(0, 40) + '...' : 'No Photo'}"`
-                ];
-                csvContent += row.join(",") + "\r\n";
+                const photosArr = item.photos || (item.photoUrl ? [item.photoUrl] : []);
+                const photoStr = photosArr.length > 0 ? photosArr[0] : 'No Photo';
+
+                xmlHeader += `
+   <Row>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.id)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(timeStr)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.name)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.category || 'General')}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.length || '')}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.breadth || '')}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="Number">${Number(item.buyPrice || 0)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="Number">${Number(item.marginPercent || 0)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="Number">${Number(item.salePrice || 0)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="Number">${photosArr.length}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(photoStr.slice(0, 50) + '...')}</Data></Cell>
+   </Row>`;
             });
 
-            const encodedUri = encodeURI(csvContent);
+            xmlHeader += `
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+            const blob = new Blob([xmlHeader], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Purchase_Inventory_${new Date().toISOString().slice(0,10)}.csv`);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Purchase_Inventory_${new Date().toISOString().slice(0,10)}.xls`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            showToast('Exported', 'Excel/CSV report downloaded successfully!');
+            showToast('Exported', 'Styled Excel workbook downloaded successfully!');
         }
 
         window.showImageModalFromList = function(encodedJson, title) {
@@ -761,6 +816,9 @@
         }
         function escapeAttr(str) {
             return (str || '').replace(/'/g, "");
+        }
+        function escapeXml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
         }
     </script>
 </body>
