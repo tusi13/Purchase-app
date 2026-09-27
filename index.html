@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diwali Lights Cloud Inventory Tool</title>
+    <title>Diwali Lights Cloud Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,19 +17,19 @@
         <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center text-slate-950 shadow-md font-bold text-lg">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <i class="fa-solid fa-bolt"></i>
                 </div>
                 <div>
                     <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
                         Diwali Lights Cloud Tool 
                         <span id="connectionBadge" class="text-[10px] bg-emerald-500/90 text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">Live Sync</span>
                     </h1>
-                    <p class="text-xs text-amber-100/80">Snap or upload photos, sync to cloud, and export Excel</p>
+                    <p class="text-xs text-amber-100/80">Cloud database storage & Excel export</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xs bg-slate-900/80 text-amber-400 border border-amber-500/40 px-3 py-2 rounded-xl font-medium flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-check"></i> Connected
+                <span id="dbStatusBadge" class="text-xs bg-slate-900/80 text-amber-400 border border-amber-500/40 px-3 py-2 rounded-xl font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Connecting...
                 </span>
             </div>
         </div>
@@ -97,28 +97,28 @@
                         <div class="flex items-center gap-3">
                             <button type="button" onclick="openPhotoSourceModal()" class="flex-1 bg-slate-950 hover:bg-slate-900 border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-3 text-center transition flex items-center justify-center gap-2 text-xs text-slate-300">
                                 <i class="fa-solid fa-camera text-amber-400 text-base"></i>
-                                <span id="photoFileName">Tap to Capture or Choose Gallery</span>
+                                <span id="photoFileName">Tap to Take Photo or Choose Gallery</span>
                             </button>
                             <div id="thumbnailContainer" class="hidden relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-950 flex-shrink-0">
                                 <img id="imagePreviewTag" src="" alt="Preview" class="w-full h-full object-cover">
                                 <button type="button" onclick="clearPhoto()" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-bl flex items-center justify-center">×</button>
                             </div>
                         </div>
-                        <!-- Hidden inputs for camera capture and gallery selection -->
+                        <!-- Hidden camera capture & gallery file inputs -->
                         <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelection(event)">
                         <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
                     </div>
 
                     <!-- Submit Button -->
                     <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Firebase Cloud
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Save to Firebase Cloud
                     </button>
                 </form>
             </div>
 
             <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-                <span id="dbStatusText">Cloud sync active & permanent</span>
-                <span class="text-amber-400"><i class="fa-solid fa-shield-check"></i> Ready</span>
+                <span id="dbStatusText">Cloud Database Mode</span>
+                <span class="text-amber-400"><i class="fa-solid fa-shield-check"></i> Secure</span>
             </div>
         </section>
 
@@ -144,7 +144,7 @@
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-md flex gap-2 items-center">
                 <div class="relative flex-1">
                     <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                    <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search items..." 
+                    <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search cloud items..." 
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500 transition">
                 </div>
                 <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 whitespace-nowrap">
@@ -168,28 +168,27 @@
                             </tr>
                         </thead>
                         <tbody id="inventoryTableBody" class="divide-y divide-slate-800/60 text-xs text-slate-300">
-                            <!-- Populated dynamically -->
+                            <!-- Populated dynamically from Firebase -->
                         </tbody>
                     </table>
                 </div>
                 <!-- Empty State -->
                 <div id="emptyState" class="p-12 text-center flex flex-col items-center justify-center flex-grow">
                     <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 text-2xl mb-3">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <i class="fa-solid fa-cloud-arrow-down"></i>
                     </div>
                     <p class="text-sm font-medium text-slate-300">No items in cloud database yet!</p>
-                    <p class="text-xs text-slate-500 mt-1 max-w-xs">Upload or snap photos and items will sync instantly to your mobile & PC.</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs">Upload or snap photos and items will sync instantly to your database.</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Photo Source Modal (Camera vs Gallery) -->
     <div id="photoSourceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closePhotoSourceModal()">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xs p-5 shadow-2xl space-y-3" onclick="event.stopPropagation()">
             <div class="text-center pb-2 border-b border-slate-800">
                 <h3 class="text-sm font-bold text-amber-400">Select Photo Source</h3>
-                <p class="text-[11px] text-slate-400">Choose camera or photo library</p>
+                <p class="text-[11px] text-slate-400">Choose camera or gallery</p>
             </div>
             <button type="button" onclick="triggerCamera()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs shadow transition">
                 <i class="fa-solid fa-camera"></i> Take Camera Photo
@@ -201,7 +200,6 @@
         </div>
     </div>
 
-    <!-- Image Modal for Full View -->
     <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
         <div class="relative max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -214,15 +212,13 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex flex-col items-center justify-center">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl flex flex-col items-center space-y-3">
             <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-            <p id="loadingText" class="text-xs font-semibold text-amber-400">Processing cloud request...</p>
+            <p id="loadingText" class="text-xs font-semibold text-amber-400">Saving to Cloud Database...</p>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-amber-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
         <div id="toastIcon" class="text-amber-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
         <div>
@@ -233,61 +229,67 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Permanently baked Firebase configuration keys
-        const firebaseConfig = {
-            apiKey: "AIzaSyB9DN_Rejyu4mJaBGPjBCDY3AG98vCPTZ4",
-            authDomain: "studio-7180408177-1e90e.firebaseapp.com",
-            projectId: "studio-7180408177-1e90e",
-            storageBucket: "studio-7180408177-1e90e.appspot.com",
-            messagingSenderId: "628394782459",
-            appId: "1:628394782459:web:85e4eb4993a46d6edca5e"
-        };
-
-        let db = null, storage = null;
-        let unsubscribeSnapshot = null;
+        let db, auth, userId = null;
         let inventoryData = [];
         let selectedImageBase64 = null;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            initFirebaseDirectly();
-            calculateSalePrice();
-        });
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'diwali-lights-app-v1';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDummyKeyForGitHubPagesTesting123",
+            authDomain: "purchase-app-default.firebaseapp.com",
+            projectId: "purchase-app-default",
+            storageBucket: "purchase-app-default.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123:web:abc"
+        };
 
-        function initFirebaseDirectly() {
+        window.addEventListener('DOMContentLoaded', async () => {
+            calculateSalePrice();
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                try {
-                    storage = getStorage(app);
-                } catch(e) {
-                    console.warn("Storage not initialized", e);
+                auth = getAuth(app);
+
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (token) {
+                    await signInWithCustomToken(auth, token);
+                } else {
+                    await signInAnonymously(auth);
                 }
-                setupFirestoreListener();
+
+                userId = auth.currentUser?.uid || 'user_' + Math.random().toString(36).substring(2, 9);
+                
+                document.getElementById('dbStatusBadge').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Cloud Connected';
+                
+                initFirestoreSync();
             } catch (err) {
-                console.error("Firebase init error:", err);
-                showToast('Connection Error', err.message || 'Failed to connect to Firebase.', 'error');
+                console.error("Firebase initialization error:", err);
+                document.getElementById('dbStatusBadge').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Connection Error';
+                showToast('Cloud Notice', 'Check Firebase console & rules if writes fail.', 'info');
             }
-        }
+        });
 
-        function setupFirestoreListener() {
+        function initFirestoreSync() {
             if (!db) return;
-            if (unsubscribeSnapshot) unsubscribeSnapshot();
-
-            const collectionRef = collection(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory');
-            
-            unsubscribeSnapshot = onSnapshot(collectionRef, (snapshot) => {
-                inventoryData = [];
-                snapshot.forEach((docSnap) => {
-                    inventoryData.push({ id: docSnap.id, ...docSnap.data() });
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'lights_inventory');
+                onSnapshot(colRef, (snapshot) => {
+                    inventoryData = [];
+                    snapshot.forEach((docSnap) => {
+                        inventoryData.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+                    inventoryData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    renderTable();
+                }, (error) => {
+                    console.error("Firestore sync error:", error);
+                    showToast('Sync Error', 'Check Firestore rules in Firebase console.', 'error');
                 });
-                inventoryData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                renderTable();
-            }, (error) => {
-                console.error("Snapshot error:", error);
-            });
+            } catch (e) {
+                console.error("Sync setup error:", e);
+            }
         }
 
         // Photo source modal controller
@@ -318,8 +320,8 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400;
-                    const MAX_HEIGHT = 400;
+                    const MAX_WIDTH = 300;
+                    const MAX_HEIGHT = 300;
                     let width = img.width;
                     let height = img.height;
 
@@ -340,7 +342,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
                     document.getElementById('imagePreviewTag').src = selectedImageBase64;
                     document.getElementById('thumbnailContainer').classList.remove('hidden');
@@ -356,7 +358,7 @@
             document.getElementById('cameraInput').value = '';
             document.getElementById('galleryInput').value = '';
             document.getElementById('thumbnailContainer').classList.add('hidden');
-            document.getElementById('photoFileName').textContent = 'Tap to Capture or Choose Gallery';
+            document.getElementById('photoFileName').textContent = 'Tap to Take Photo or Choose Gallery';
         }
 
         window.calculateSalePrice = function() {
@@ -368,8 +370,9 @@
 
         window.handleFormSubmit = async function(event) {
             event.preventDefault();
+
             if (!db) {
-                showToast('Error', 'Firebase connection not initialized.', 'error');
+                showToast('Error', 'Database not connected.', 'error');
                 return;
             }
 
@@ -381,15 +384,16 @@
             const salePrice = buyPrice + (buyPrice * (marginPercent / 100));
             const editId = document.getElementById('editId').value;
 
-            showLoading(true, editId ? 'Updating cloud record...' : 'Saving to cloud database...');
+            showLoading(true, editId ? 'Updating cloud record...' : 'Saving to Firebase Cloud...');
 
             try {
                 let photoUrl = editId ? (inventoryData.find(i => i.id === editId)?.photoUrl || '') : '';
 
                 if (selectedImageBase64) {
-                    photoUrl = selectedImageBase64; // Instantly ready and lightning fast
+                    photoUrl = selectedImageBase64;
                 }
 
+                const itemId = editId || 'item_' + Date.now();
                 const itemData = {
                     name,
                     length,
@@ -399,24 +403,18 @@
                     salePrice,
                     photoUrl,
                     timestamp: new Date().toLocaleString(),
-                    createdAt: Date.now()
+                    createdAt: Date.now(),
+                    createdBy: userId
                 };
 
-                const collectionRef = collection(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory');
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lights_inventory', itemId);
+                await setDoc(docRef, itemData);
 
-                if (editId) {
-                    const docRef = doc(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory', editId);
-                    await updateDoc(docRef, itemData);
-                    showToast('Success', 'Cloud item updated successfully!');
-                } else {
-                    await addDoc(collectionRef, itemData);
-                    showToast('Success', 'Item saved to Firebase cloud!');
-                }
-
+                showToast('Success', editId ? 'Cloud record updated!' : 'Saved to cloud successfully!');
                 resetForm();
             } catch (err) {
-                console.error("Save error:", err);
-                showToast('Save Failed', err.message || 'Could not save to cloud.', 'error');
+                console.error("Cloud save error:", err);
+                showToast('Save Failed', 'Check Firestore rules in Firebase console.', 'error');
             } finally {
                 showLoading(false);
             }
@@ -426,7 +424,7 @@
             document.getElementById('itemForm').reset();
             document.getElementById('editId').value = '';
             document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-circle-plus"></i> Add New Light Item';
-            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload to Firebase Cloud';
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Save to Firebase Cloud';
             document.getElementById('resetFormBtn').classList.add('hidden');
             document.getElementById('marginPercent').value = '40';
             clearPhoto();
@@ -448,13 +446,13 @@
                 selectedImageBase64 = item.photoUrl;
                 document.getElementById('imagePreviewTag').src = item.photoUrl;
                 document.getElementById('thumbnailContainer').classList.remove('hidden');
-                document.getElementById('photoFileName').textContent = 'Cloud photo attached ✓';
+                document.getElementById('photoFileName').textContent = 'Photo attached ✓';
             } else {
                 clearPhoto();
             }
 
-            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Cloud Item';
-            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Cloud Record';
+            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Light Item';
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Update Cloud Record';
             document.getElementById('resetFormBtn').classList.remove('hidden');
             calculateSalePrice();
 
@@ -462,15 +460,17 @@
         }
 
         window.deleteItem = async function(id) {
-            if (!confirm('Are you sure you want to delete this item from the cloud database?')) return;
+            if (!confirm('Are you sure you want to delete this item from cloud?')) return;
+            if (!db) return;
+
+            showLoading(true, 'Deleting from cloud...');
             try {
-                showLoading(true, 'Deleting from cloud...');
-                const docRef = doc(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory', id);
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lights_inventory', id);
                 await deleteDoc(docRef);
-                showToast('Deleted', 'Item removed from cloud.');
+                showToast('Deleted', 'Item removed from cloud database.');
             } catch (err) {
                 console.error("Delete error:", err);
-                showToast('Error', 'Failed to delete item.', 'error');
+                showToast('Error', 'Could not delete item.', 'error');
             } finally {
                 showLoading(false);
             }
@@ -576,7 +576,7 @@
             document.getElementById('imageModal').classList.add('hidden');
         }
 
-        function showLoading(show, text = 'Processing...') {
+        function showLoading(show, text = 'Saving to Cloud Database...') {
             const overlay = document.getElementById('loadingOverlay');
             document.getElementById('loadingText').textContent = text;
             if (show) overlay.classList.remove('hidden');
@@ -600,7 +600,11 @@
             toast.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => {
                 toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            }, 3500);
+        }
+
+        window.confirm = function(msg) {
+            return window.prompt(msg + " (Type 'yes' to confirm)") === 'yes';
         }
 
         function escapeHtml(str) {
