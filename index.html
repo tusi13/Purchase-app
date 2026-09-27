@@ -24,7 +24,7 @@
                         Diwali Lights Cloud Tool 
                         <span id="connectionBadge" class="text-[10px] bg-emerald-500/90 text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">Live Sync</span>
                     </h1>
-                    <p class="text-xs text-amber-100/80">Snap photos, sync to Firebase cloud, and export to Excel</p>
+                    <p class="text-xs text-amber-100/80">Snap or upload photos, sync to cloud, and export Excel</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -91,14 +91,15 @@
                         <span id="salePricePreview" class="text-base sm:text-lg font-bold text-amber-400">₹0.00</span>
                     </div>
 
-                    <!-- Photo Upload -->
+                    <!-- Photo Upload / Capture Option -->
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Light Photo (Camera or Gallery)</label>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Light Photo (Choose Gallery or Camera)</label>
                         <div class="flex items-center gap-3">
                             <label class="flex-1 cursor-pointer bg-slate-950 hover:bg-slate-900 border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-3 text-center transition flex items-center justify-center gap-2 text-xs text-slate-300">
-                                <i class="fa-solid fa-camera text-amber-400 text-base"></i>
-                                <span id="photoFileName">Tap to snap or upload</span>
-                                <input type="file" id="lightPhoto" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelection(event)">
+                                <i class="fa-solid fa-image text-amber-400 text-base"></i>
+                                <span id="photoFileName">Upload from Gallery or Camera</span>
+                                <!-- Note: Removed capture="environment" to allow both gallery selection and camera capture on mobile -->
+                                <input type="file" id="lightPhoto" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
                             </label>
                             <div id="thumbnailContainer" class="hidden relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-950 flex-shrink-0">
                                 <img id="imagePreviewTag" src="" alt="Preview" class="w-full h-full object-cover">
@@ -177,7 +178,7 @@
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
                     <p class="text-sm font-medium text-slate-300">No items in cloud database yet!</p>
-                    <p class="text-xs text-slate-500 mt-1 max-w-xs">Snap photos in shops and items will sync instantly to your mobile & PC.</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs">Upload or snap photos and items will sync instantly to your mobile & PC.</p>
                 </div>
             </div>
         </section>
@@ -237,8 +238,6 @@
 
         function initFirebaseDirectly() {
             try {
-                // Clear any stale local configuration storage to ensure baked-in keys take precedence
-                localStorage.removeItem('diwali_firebase_config');
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 storage = getStorage(app);
@@ -285,7 +284,7 @@
             selectedImageFile = null;
             document.getElementById('lightPhoto').value = '';
             document.getElementById('thumbnailContainer').classList.add('hidden');
-            document.getElementById('photoFileName').textContent = 'Tap to snap or upload';
+            document.getElementById('photoFileName').textContent = 'Upload from Gallery or Camera';
         }
 
         window.calculateSalePrice = function() {
