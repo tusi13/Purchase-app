@@ -160,7 +160,6 @@
                     </div>
                 </div>
 
-                <!-- Search and Date Filter Controls -->
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-md flex flex-col xl:flex-row gap-2 items-center">
                     <div class="relative flex-1 w-full">
                         <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
@@ -223,7 +222,6 @@
         Developed by <span class="text-blue-400 font-semibold">Er . shadow</span>
     </footer>
 
-    <!-- Modals -->
     <div id="photoSourceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closePhotoSourceModal()">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xs p-5 shadow-2xl space-y-3" onclick="event.stopPropagation()">
             <div class="text-center pb-2 border-b border-slate-800">
@@ -609,12 +607,27 @@
                     photoThumbHTML = `<span class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-600 text-xs"><i class="fa-solid fa-image-slash"></i></span>`;
                 }
 
+                // Ensure display format is DD-MM-YYYY HH:MM:SS
+                let displayTime = item.timestamp || '-';
+                if (displayTime.includes('/')) {
+                    const parts = displayTime.split(',');
+                    if (parts.length === 2) {
+                        const dateParts = parts[0].trim().split('/');
+                        if (dateParts.length === 3) {
+                            const d = dateParts[0].padStart(2, '0');
+                            const m = dateParts[1].padStart(2, '0');
+                            const y = dateParts[2];
+                            displayTime = `${d}-${m}-${y} ${parts[1].trim()}`;
+                        }
+                    }
+                }
+
                 tr.innerHTML = `
                     <td class="p-3">${photoThumbHTML}</td>
                     <td class="p-3 font-medium text-slate-100">
                         <div class="line-clamp-1 font-bold">${escapeHtml(item.name)}</div>
                         <div class="text-[10px] text-blue-400">ID: ${escapeHtml(item.id)} • ${escapeHtml(item.category || 'General')}</div>
-                        <div class="text-[10px] text-slate-400">Added: ${item.timestamp || '-'}</div>
+                        <div class="text-[10px] text-slate-400">Added: ${displayTime}</div>
                     </td>
                     <td class="p-3 text-slate-300 whitespace-nowrap">${escapeHtml(item.length || '-')} × ${escapeHtml(item.breadth || '-')}</td>
                     <td class="p-3 font-semibold text-blue-400">₹${Number(item.buyPrice).toFixed(2)}</td>
@@ -637,13 +650,28 @@
 
             let csvContent = "data:text/csv;charset=utf-8,";
             // Header with interactive columns
-            csvContent += "ID,Timestamp (DD-MM-YYYY),Item Name,Category,Size,Specs,Buy Price (INR),Margin (%),Sale Price (INR),Photo Count\r\n";
+            csvContent += "ID,Timestamp (DD-MM-YYYY HH:MM:SS),Item Name,Category,Size,Specs,Buy Price (INR),Margin (%),Sale Price (INR),Photo Count,Photos Data\r\n";
 
             inventoryData.forEach(item => {
                 const photosArr = item.photos || (item.photoUrl ? [item.photoUrl] : []);
+                
+                let timeStr = item.timestamp || '';
+                if (timeStr.includes('/')) {
+                    const parts = timeStr.split(',');
+                    if (parts.length === 2) {
+                        const dateParts = parts[0].trim().split('/');
+                        if (dateParts.length === 3) {
+                            const d = dateParts[0].padStart(2, '0');
+                            const m = dateParts[1].padStart(2, '0');
+                            const y = dateParts[2];
+                            timeStr = `${d}-${m}-${y} ${parts[1].trim()}`;
+                        }
+                    }
+                }
+
                 const row = [
                     item.id,
-                    `"${item.timestamp || ''}"`,
+                    `"${timeStr}"`,
                     `"${(item.name || '').replace(/"/g, '""')}"`,
                     `"${(item.category || '').replace(/"/g, '""')}"`,
                     `"${item.length || ''}"`,
@@ -651,7 +679,8 @@
                     item.buyPrice || 0,
                     item.marginPercent || 0,
                     item.salePrice || 0,
-                    photosArr.length
+                    photosArr.length,
+                    `"${photosArr.length > 0 ? photosArr[0].slice(0, 40) + '...' : 'No Photo'}"`
                 ];
                 csvContent += row.join(",") + "\r\n";
             });
@@ -664,7 +693,7 @@
             link.click();
             document.body.removeChild(link);
 
-            showToast('Exported', 'Excel/CSV file downloaded successfully!');
+            showToast('Exported', 'Excel/CSV report downloaded successfully!');
         }
 
         window.showImageModalFromList = function(encodedJson, title) {
