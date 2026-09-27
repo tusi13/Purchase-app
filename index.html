@@ -61,7 +61,7 @@
             <div id="staffLoginForm" class="space-y-4 hidden pt-2">
                 <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-center space-y-1">
                     <p class="text-xs text-emerald-300 font-semibold">Store Field Staff Mode</p>
-                    <p class="text-[11px] text-slate-400">Capture shop items, multi-photos, shop details, and prices. Your session view stays private to your current uploads.</p>
+                    <p class="text-[11px] text-slate-400">Capture shop items, multi-photos, shop details, and buy prices. Your session view stays private to your current uploads.</p>
                 </div>
                 <button type="button" onclick="handleStaffLogin()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition text-xs">
                     <i class="fa-solid fa-mobile-screen-button mr-1.5"></i> Open Staff Field Portal
@@ -175,13 +175,13 @@
                         </div>
 
                         <!-- Buy Price & Margin -->
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-3" id="pricingFieldsContainer">
                             <div>
                                 <label class="block text-xs font-medium text-slate-300 mb-1">Buy Price (₹) *</label>
                                 <input type="number" step="0.01" min="0" id="buyPrice" required placeholder="0.00" oninput="calculateSalePrice()"
                                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
                             </div>
-                            <div>
+                            <div id="marginFieldWrapper">
                                 <label class="block text-xs font-medium text-slate-300 mb-1">Margin (%) *</label>
                                 <input type="number" step="0.1" id="marginPercent" required value="40" placeholder="40" oninput="calculateSalePrice()"
                                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
@@ -189,7 +189,7 @@
                         </div>
 
                         <!-- Calculated Sale Price Preview -->
-                        <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 flex justify-between items-center">
+                        <div id="salePricePreviewBox" class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 flex justify-between items-center">
                             <span class="text-xs text-blue-300 font-medium">Calculated Sale Price:</span>
                             <span id="salePricePreview" class="text-base sm:text-lg font-bold text-blue-400">₹0.00</span>
                         </div>
@@ -236,7 +236,7 @@
                         <p class="text-xs text-slate-400 mb-1">Total Buy Value</p>
                         <p id="statTotalBuy" class="text-lg sm:text-xl font-bold text-blue-400">₹0</p>
                     </div>
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md">
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md" id="statSaleBox">
                         <p class="text-xs text-slate-400 mb-1">Total Sale Value</p>
                         <p id="statTotalSale" class="text-lg sm:text-xl font-bold text-emerald-400">₹0</p>
                     </div>
@@ -277,8 +277,8 @@
                                     <th class="p-3">Item Details & Shop</th>
                                     <th class="p-3">Size/Specs</th>
                                     <th class="p-3">Buy (₹)</th>
-                                    <th class="p-3">Margin</th>
-                                    <th class="p-3">Sale (₹)</th>
+                                    <th class="p-3" id="tableHeaderMargin">Margin</th>
+                                    <th class="p-3" id="tableHeaderSale">Sale (₹)</th>
                                     <th class="p-3 text-center" id="tableActionHeader">Actions</th>
                                 </tr>
                             </thead>
@@ -362,10 +362,13 @@
         let inventoryData = [];
         let selectedImagesList = [];
         let currentUserRole = 'admin';
-        let staffSessionId = sessionStorage.getItem('staff_session_id');
-        if (!staffSessionId) {
-            staffSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2,7);
-            sessionStorage.setItem('staff_session_id', staffSessionId);
+        
+        // Generate daily staff session id (YYYY-MM-DD) so previous day uploads wipe out automatically for staff view
+        const todayDateStr = new Date().toISOString().slice(0,10);
+        let staffSessionId = sessionStorage.getItem('staff_session_date');
+        if (staffSessionId !== todayDateStr) {
+            staffSessionId = 'staff_session_' + todayDateStr + '_' + Math.random().toString(36).substring(2,7);
+            sessionStorage.setItem('staff_session_date', staffSessionId);
         }
         
         const firebaseConfig = {
@@ -467,18 +470,37 @@
             const emptyTitle = document.getElementById('emptyStateTitle');
             const emptySub = document.getElementById('emptyStateSub');
 
+            const marginWrapper = document.getElementById('marginFieldWrapper');
+            const salePreviewBox = document.getElementById('salePricePreviewBox');
+            const statSaleBox = document.getElementById('statSaleBox');
+            const thMargin = document.getElementById('tableHeaderMargin');
+            const thSale = document.getElementById('tableHeaderSale');
+
             if (currentUserRole === 'staff') {
                 headerTitle.textContent = "Staff Field Collection Portal";
-                headerSub.textContent = "Store Enquiries & Price Uploads (Your Session View)";
-                statLabel.textContent = "Your Uploads";
-                emptyTitle.textContent = "No items uploaded in this session!";
+                headerSub.textContent = "Store Enquiries & Price Uploads (Today's Session View)";
+                statLabel.textContent = "Today's Uploads";
+                emptyTitle.textContent = "No items uploaded today yet!";
                 emptySub.textContent = "Captured store items will show here instantly.";
+
+                // Hide margin and sale price from staff view
+                if (marginWrapper) marginWrapper.classList.add('hidden');
+                if (salePreviewBox) salePreviewBox.classList.add('hidden');
+                if (statSaleBox) statSaleBox.classList.add('hidden');
+                if (thMargin) thMargin.classList.add('hidden');
+                if (thSale) thSale.classList.add('hidden');
             } else {
                 headerTitle.textContent = "Purchase & Inventory Hub";
                 headerSub.textContent = "Multi-Photo Inventory & Admin Management";
                 statLabel.textContent = "Total Items";
                 emptyTitle.textContent = "No items found matching criteria!";
                 emptySub.textContent = "Upload items with multi-photos and manage your inventory seamlessly.";
+
+                if (marginWrapper) marginWrapper.classList.remove('hidden');
+                if (salePreviewBox) salePreviewBox.classList.remove('hidden');
+                if (statSaleBox) statSaleBox.classList.remove('hidden');
+                if (thMargin) thMargin.classList.remove('hidden');
+                if (thSale) thSale.classList.remove('hidden');
             }
             renderTable();
         }
@@ -666,7 +688,7 @@
 
         window.calculateSalePrice = function() {
             const buy = parseFloat(document.getElementById('buyPrice').value) || 0;
-            const margin = parseFloat(document.getElementById('marginPercent').value) || 0;
+            const margin = parseFloat(document.getElementById('marginPercent').value) || 40;
             const sale = buy + (buy * (margin / 100));
             document.getElementById('salePricePreview').textContent = '₹' + sale.toFixed(2);
         }
@@ -688,7 +710,6 @@
             if (category === 'ADD_NEW') {
                 const customCat = document.getElementById('customCategoryInput').value.trim();
                 category = customCat ? customCat : 'General';
-                // Add to dropdown if not present
                 const selectEl = document.getElementById('itemCategory');
                 const opt = document.createElement('option');
                 opt.value = category;
@@ -702,7 +723,7 @@
             const length = document.getElementById('itemLength').value.trim() || '-';
             const breadth = document.getElementById('itemBreadth').value.trim() || '-';
             const buyPrice = parseFloat(document.getElementById('buyPrice').value) || 0;
-            const marginPercent = parseFloat(document.getElementById('marginPercent').value) || 0;
+            const marginPercent = currentUserRole === 'staff' ? 40 : (parseFloat(document.getElementById('marginPercent').value) || 40);
             const salePrice = buyPrice + (buyPrice * (marginPercent / 100));
             const editId = document.getElementById('editId').value;
 
@@ -737,7 +758,7 @@
                     rawDate: rawDateStr,
                     createdAt: Date.now(),
                     uploadedBy: currentUserRole,
-                    staffSessionId: currentUserRole === 'staff' ? staffSessionId : 'admin_hub'
+                    staffSessionId: staffSessionId
                 };
 
                 const docRef = doc(db, 'lights_inventory', itemId);
@@ -745,7 +766,7 @@
 
                 showToast('Success', editId ? 'Cloud record updated!' : 'Saved to cloud successfully!');
                 
-                // Keep shopName and shopMobile for next item convenience
+                // Retain shopName and shopMobile for convenience when adding next item from the same shop
                 const savedShop = shopName;
                 const savedMobile = shopMobile;
                 resetForm();
@@ -858,7 +879,7 @@
 
             tbody.innerHTML = '';
 
-            // Filter data based on role: Staff see only their session uploads, Admin sees all
+            // Staff see ONLY their current session / today's uploads. Admin sees all.
             const baseData = inventoryData.filter(item => {
                 if (currentUserRole === 'staff') {
                     return item.staffSessionId === staffSessionId;
@@ -924,6 +945,9 @@
                 let shopDisplay = item.shopName ? `<div class="text-[10px] text-emerald-400"><i class="fa-solid fa-store mr-1"></i>${escapeHtml(item.shopName)} ${item.shopMobile ? '('+escapeHtml(item.shopMobile)+')' : ''}</div>` : '';
 
                 let actionsHTML = '';
+                let marginTD = '';
+                let saleTD = '';
+
                 if (currentUserRole === 'admin') {
                     actionsHTML = `
                         <td class="p-3 text-center whitespace-nowrap">
@@ -931,12 +955,16 @@
                             <button onclick="deleteItem('${item.id}')" class="bg-slate-800 hover:bg-red-600/80 text-red-400 hover:text-white p-1.5 rounded-lg text-xs transition" title="Delete"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
+                    marginTD = `<td class="p-3 text-slate-300">${item.marginPercent}%</td>`;
+                    saleTD = `<td class="p-3 font-bold text-emerald-400">₹${Number(item.salePrice).toFixed(2)}</td>`;
                 } else {
                     actionsHTML = `
                         <td class="p-3 text-center whitespace-nowrap text-[11px] text-slate-500">
                             <i class="fa-solid fa-lock text-[10px] mr-1"></i> Staff View
                         </td>
                     `;
+                    marginTD = ``;
+                    saleTD = ``;
                 }
 
                 tr.innerHTML = `
@@ -949,8 +977,8 @@
                     </td>
                     <td class="p-3 text-slate-300 whitespace-nowrap">${escapeHtml(item.length || '-')} × ${escapeHtml(item.breadth || '-')}</td>
                     <td class="p-3 font-semibold text-blue-400">₹${Number(item.buyPrice).toFixed(2)}</td>
-                    <td class="p-3 text-slate-300">${item.marginPercent}%</td>
-                    <td class="p-3 font-bold text-emerald-400">₹${Number(item.salePrice).toFixed(2)}</td>
+                    ${marginTD}
+                    ${saleTD}
                     ${actionsHTML}
                 `;
                 tbody.appendChild(tr);
