@@ -229,21 +229,23 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let db, auth, userId = null;
         let inventoryData = [];
         let selectedImageBase64 = null;
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'diwali-lights-app-v1';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyDummyKeyForGitHubPagesTesting123",
-            authDomain: "purchase-app-default.firebaseapp.com",
-            projectId: "purchase-app-default",
-            storageBucket: "purchase-app-default.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123:web:abc"
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'purchasing-app-v1';
+        
+        // Permanent Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9DN_rEjyu4mJaBGPjBCDY3AG98vCPTZ4",
+            authDomain: "studio-7180408177-1e90e.firebaseapp.com",
+            projectId: "studio-7180408177-1e90e",
+            storageBucket: "studio-7180408177-1e90e.firebasestorage.app",
+            messagingSenderId: "628394782459",
+            appId: "1:628394782459:web:85e4eb4993a46d66edca5e"
         };
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -268,7 +270,7 @@
             } catch (err) {
                 console.error("Firebase initialization error:", err);
                 document.getElementById('dbStatusBadge').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Connection Error';
-                showToast('Cloud Notice', 'Check Firebase console & rules if writes fail.', 'info');
+                showToast('Cloud Notice', 'Check Firestore rules in Firebase console if saving fails.', 'info');
             }
         });
 
