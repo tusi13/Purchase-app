@@ -91,6 +91,7 @@
                         <span id="salePricePreview" class="text-base sm:text-lg font-bold text-amber-400">₹0.00</span>
                     </div>
 
+                    <!-- Photo Upload Selection Trigger -->
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Light Photo</label>
                         <div class="flex items-center gap-3">
@@ -103,7 +104,7 @@
                                 <button type="button" onclick="clearPhoto()" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-bl flex items-center justify-center">×</button>
                             </div>
                         </div>
-                        <!-- Hidden file inputs for direct camera or gallery triggers -->
+                        <!-- Hidden inputs for camera capture and gallery selection -->
                         <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelection(event)">
                         <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
                     </div>
