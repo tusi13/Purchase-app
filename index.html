@@ -31,7 +31,7 @@
             <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Admin ID</label>
-                    <input type="text" id="adminUser" required placeholder="Enter ID" 
+                    <input type="text" id="adminUser" required placeholder="Enter Admin ID" 
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
                 </div>
                 <div>
@@ -43,9 +43,6 @@
                     Login to Dashboard
                 </button>
             </form>
-            <div class="text-center text-[11px] text-slate-500">
-                Default ID: <span class="text-blue-400">shadow</span> | Password: <span class="text-blue-400">shadow</span>
-            </div>
         </div>
     </div>
 
@@ -791,7 +788,7 @@
     <Cell ss:StyleID="Header"><Data ss:Type="String">Margin (%)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Sale Price (INR)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Photo Count</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Photos Data</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Photos Data Link</Data></Cell>
    </Row>`;
 
             inventoryData.forEach(item => {
@@ -843,7 +840,7 @@
             link.click();
             document.body.removeChild(link);
 
-            showToast('Exported', 'Styled Excel workbook with clickable photo hyperlinks downloaded successfully!');
+            showToast('Exported', 'Styled Excel workbook with clean photo hyperlinks downloaded successfully!');
         }
 
         window.showImageModalFromList = function(encodedJson, title) {
