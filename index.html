@@ -24,7 +24,7 @@
                         Diwali Lights Cloud Tool 
                         <span id="connectionBadge" class="text-[10px] bg-emerald-500/90 text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">Live Sync</span>
                     </h1>
-                    <p class="text-xs text-amber-100/80">Cloud database storage & Excel export</p>
+                    <p class="text-xs text-amber-100/80">Firebase Firestore Cloud Sync & Excel Export</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -104,7 +104,6 @@
                                 <button type="button" onclick="clearPhoto()" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-bl flex items-center justify-center">×</button>
                             </div>
                         </div>
-                        <!-- Hidden camera capture & gallery file inputs -->
                         <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelection(event)">
                         <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
                     </div>
@@ -117,11 +116,12 @@
             </div>
 
             <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-                <span id="dbStatusText">Cloud Database Mode</span>
+                <span id="dbStatusText">Firestore Cloud Active</span>
                 <span class="text-amber-400"><i class="fa-solid fa-shield-check"></i> Secure</span>
             </div>
         </section>
 
+        <!-- Right Data Table Section -->
         <section class="lg:col-span-7 flex flex-col space-y-4">
             
             <!-- Summary Stats -->
@@ -200,6 +200,7 @@
         </div>
     </div>
 
+    <!-- Image Preview Modal -->
     <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
         <div class="relative max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -212,6 +213,7 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex flex-col items-center justify-center">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl flex flex-col items-center space-y-3">
             <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
@@ -219,6 +221,7 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-amber-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
         <div id="toastIcon" class="text-amber-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
         <div>
@@ -229,16 +232,13 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        let db, auth, userId = null;
+        let db = null;
         let inventoryData = [];
         let selectedImageBase64 = null;
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'purchasing-app-v1';
         
-        // Permanent Firebase Configuration
+        // Exact Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyB9DN_rEjyu4mJaBGPjBCDY3AG98vCPTZ4",
             authDomain: "studio-7180408177-1e90e.firebaseapp.com",
@@ -248,36 +248,26 @@
             appId: "1:628394782459:web:85e4eb4993a46d66edca5e"
         };
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', () => {
             calculateSalePrice();
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                auth = getAuth(app);
-
-                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (token) {
-                    await signInWithCustomToken(auth, token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                userId = auth.currentUser?.uid || 'user_' + Math.random().toString(36).substring(2, 9);
                 
                 document.getElementById('dbStatusBadge').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Cloud Connected';
-                
                 initFirestoreSync();
             } catch (err) {
                 console.error("Firebase initialization error:", err);
                 document.getElementById('dbStatusBadge').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-400"></i> Connection Error';
-                showToast('Cloud Notice', 'Check Firestore rules in Firebase console if saving fails.', 'info');
+                showToast('Cloud Notice', 'Check Firebase configuration.', 'error');
             }
         });
 
         function initFirestoreSync() {
             if (!db) return;
             try {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'lights_inventory');
+                // Using standard collection path 'lights_inventory' for reliable Firestore rules matching
+                const colRef = collection(db, 'lights_inventory');
                 onSnapshot(colRef, (snapshot) => {
                     inventoryData = [];
                     snapshot.forEach((docSnap) => {
@@ -294,7 +284,6 @@
             }
         }
 
-        // Photo source modal controller
         window.openPhotoSourceModal = function() {
             document.getElementById('photoSourceModal').classList.remove('hidden');
         }
@@ -322,8 +311,8 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 300;
-                    const MAX_HEIGHT = 300;
+                    const MAX_WIDTH = 250;
+                    const MAX_HEIGHT = 250;
                     let width = img.width;
                     let height = img.height;
 
@@ -344,7 +333,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                    selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.4);
 
                     document.getElementById('imagePreviewTag').src = selectedImageBase64;
                     document.getElementById('thumbnailContainer').classList.remove('hidden');
@@ -405,11 +394,10 @@
                     salePrice,
                     photoUrl,
                     timestamp: new Date().toLocaleString(),
-                    createdAt: Date.now(),
-                    createdBy: userId
+                    createdAt: Date.now()
                 };
 
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lights_inventory', itemId);
+                const docRef = doc(db, 'lights_inventory', itemId);
                 await setDoc(docRef, itemData);
 
                 showToast('Success', editId ? 'Cloud record updated!' : 'Saved to cloud successfully!');
@@ -467,7 +455,7 @@
 
             showLoading(true, 'Deleting from cloud...');
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'lights_inventory', id);
+                const docRef = doc(db, 'lights_inventory', id);
                 await deleteDoc(docRef);
                 showToast('Deleted', 'Item removed from cloud database.');
             } catch (err) {
@@ -585,7 +573,7 @@
             else overlay.classList.add('hidden');
         }
 
-        function showToast(title, message, type = 'success') {
+        window.showToast = function(title, message, type = 'success') {
             const toast = document.getElementById('toast');
             document.getElementById('toastTitle').textContent = title;
             document.getElementById('toastMsg').textContent = message;
