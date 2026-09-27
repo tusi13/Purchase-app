@@ -21,9 +21,9 @@
     <div id="loginModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-5">
             <div class="text-center space-y-1">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 mx-auto flex items-center justify-center text-white text-xl shadow-lg mb-2 overflow-hidden relative cursor-pointer group" onclick="document.getElementById('modalLogoUpload').click()" title="Click to upload custom logo">
-                    <img id="modalLogoImg" src="" class="w-full h-full object-cover hidden">
-                    <i id="modalLogoIcon" class="fa-solid fa-boxes-stacked"></i>
+                <div class="w-16 h-16 rounded-2xl bg-transparent mx-auto flex items-center justify-center text-white text-2xl shadow-sm mb-2 overflow-hidden relative cursor-pointer group" onclick="document.getElementById('modalLogoUpload').click()" title="Click to upload custom logo">
+                    <img id="modalLogoImg" src="" class="w-full h-full object-contain hidden">
+                    <i id="modalLogoIcon" class="fa-solid fa-boxes-stacked text-blue-400"></i>
                     <input type="file" id="modalLogoUpload" accept="image/*" class="hidden" onchange="handleModalLogoChange(event)">
                 </div>
                 <h2 id="loginModalTitle" class="text-lg font-bold text-white">Inventory Portal Access</h2>
@@ -75,10 +75,10 @@
         <header class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 shadow-xl sticky top-0 z-40 border-b border-blue-500/30">
             <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <div onclick="document.getElementById('logoUploadInput').click()" class="w-12 h-12 rounded-xl bg-slate-900 border border-blue-400/50 flex items-center justify-center text-blue-400 shadow-md font-bold overflow-hidden cursor-pointer relative group" title="Click to change logo">
-                        <img id="headerLogoImg" src="" class="w-full h-full object-cover hidden">
-                        <i id="headerLogoIcon" class="fa-solid fa-boxes-stacked text-lg"></i>
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-[9px] text-white">Change</div>
+                    <div onclick="document.getElementById('logoUploadInput').click()" class="w-12 h-12 rounded-xl bg-transparent flex items-center justify-center text-blue-200 shadow-sm font-bold overflow-hidden cursor-pointer relative group" title="Click to change logo">
+                        <img id="headerLogoImg" src="" class="w-full h-full object-contain hidden">
+                        <i id="headerLogoIcon" class="fa-solid fa-boxes-stacked text-xl"></i>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-[9px] text-white">Change</div>
                     </div>
                     <input type="file" id="logoUploadInput" accept="image/*" class="hidden" onchange="handleLogoChange(event)">
                     
@@ -338,7 +338,7 @@
         let db = null;
         let inventoryData = [];
         let selectedImagesList = [];
-        let currentUserRole = 'admin'; // 'admin' or 'staff'
+        let currentUserRole = 'admin';
         
         const firebaseConfig = {
             apiKey: "AIzaSyB9DN_rEjyu4mJaBGPjBCDY3AG98vCPTZ4",
