@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diwali Lights Cloud Inventory Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        festive: {
+                            gold: '#D97706',
+                            saffron: '#EA580C',
+                            dark: '#0F172A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col">
+
+    <header class="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 shadow-xl sticky top-0 z-40 border-b border-amber-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center text-slate-950 shadow-md font-bold text-lg">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        Diwali Lights Cloud Tool 
+                        <span id="connectionBadge" class="text-[10px] bg-emerald-500/90 text-white px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">Live Sync</span>
+                    </h1>
+                    <p class="text-xs text-amber-100/80">Snap photos, sync to Firebase cloud, and export to Excel</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs bg-slate-900/80 text-amber-400 border border-amber-500/40 px-3 py-2 rounded-xl font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check"></i> Connected
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Form Column -->
+        <section class="lg:col-span-5 bg-slate-900/90 backdrop-blur rounded-2xl p-5 sm:p-6 shadow-2xl border border-slate-800 flex flex-col justify-between h-fit">
+            <div>
+                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-800">
+                    <h2 id="formTitle" class="text-sm sm:text-base font-semibold text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-plus"></i> Add New Light Item
+                    </h2>
+                    <button type="button" id="resetFormBtn" onclick="resetForm()" class="text-xs text-slate-400 hover:text-slate-200 underline hidden">Cancel Edit</button>
+                </div>
+
+                <form id="itemForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <input type="hidden" id="editId" value="">
+
+                    <!-- Light Name -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Light Name / Description *</label>
+                        <input type="text" id="lightName" required placeholder="e.g. 50 Led Curtain Warm White" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition">
+                    </div>
+
+                    <!-- Dimensions -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Length</label>
+                            <input type="text" id="lightLength" placeholder="e.g. 10m / 5ft" 
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Breadth / Width</label>
+                            <input type="text" id="lightBreadth" placeholder="e.g. 2m / Standard" 
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Buy Price & Margin -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Buy Price (₹) *</label>
+                            <input type="number" step="0.01" min="0" id="buyPrice" required placeholder="0.00" oninput="calculateSalePrice()"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Margin (%) *</label>
+                            <input type="number" step="0.1" id="marginPercent" required value="40" placeholder="40" oninput="calculateSalePrice()"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Calculated Sale Price Preview -->
+                    <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex justify-between items-center">
+                        <span class="text-xs text-amber-300 font-medium">Calculated Sale Price:</span>
+                        <span id="salePricePreview" class="text-base sm:text-lg font-bold text-amber-400">₹0.00</span>
+                    </div>
+
+                    <!-- Photo Upload -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Light Photo (Camera or Gallery)</label>
+                        <div class="flex items-center gap-3">
+                            <label class="flex-1 cursor-pointer bg-slate-950 hover:bg-slate-900 border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-3 text-center transition flex items-center justify-center gap-2 text-xs text-slate-300">
+                                <i class="fa-solid fa-camera text-amber-400 text-base"></i>
+                                <span id="photoFileName">Tap to snap or upload</span>
+                                <input type="file" id="lightPhoto" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelection(event)">
+                            </label>
+                            <div id="thumbnailContainer" class="hidden relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-950 flex-shrink-0">
+                                <img id="imagePreviewTag" src="" alt="Preview" class="w-full h-full object-cover">
+                                <button type="button" onclick="clearPhoto()" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-bl flex items-center justify-center">×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Firebase Cloud
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+                <span id="dbStatusText">Cloud sync active & permanent</span>
+                <span class="text-amber-400"><i class="fa-solid fa-shield-check"></i> Ready</span>
+            </div>
+        </section>
+
+        <section class="lg:col-span-7 flex flex-col space-y-4">
+            
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md">
+                    <p class="text-xs text-slate-400 mb-1">Total Items</p>
+                    <p id="statTotalItems" class="text-lg sm:text-xl font-bold text-slate-100">0</p>
+                </div>
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md">
+                    <p class="text-xs text-slate-400 mb-1">Total Buy Value</p>
+                    <p id="statTotalBuy" class="text-lg sm:text-xl font-bold text-amber-400">₹0</p>
+                </div>
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md">
+                    <p class="text-xs text-slate-400 mb-1">Total Sale Value</p>
+                    <p id="statTotalSale" class="text-lg sm:text-xl font-bold text-emerald-400">₹0</p>
+                </div>
+            </div>
+
+            <!-- Search and Export Controls -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-md flex gap-2 items-center">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search items..." 
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500 transition">
+                </div>
+                <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-xl text-xs shadow transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-file-excel"></i> Export Excel
+                </button>
+            </div>
+
+            <!-- Data Table Container -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex-grow flex flex-col">
+                <div class="overflow-x-auto flex-grow max-h-[500px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-800 z-10">
+                            <tr>
+                                <th class="p-3">Photo</th>
+                                <th class="p-3">Light Name</th>
+                                <th class="p-3">Size (L×B)</th>
+                                <th class="p-3">Buy (₹)</th>
+                                <th class="p-3">Margin</th>
+                                <th class="p-3">Sale (₹)</th>
+                                <th class="p-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody" class="divide-y divide-slate-800/60 text-xs text-slate-300">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Empty State -->
+                <div id="emptyState" class="p-12 text-center flex flex-col items-center justify-center flex-grow">
+                    <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 text-2xl mb-3">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <p class="text-sm font-medium text-slate-300">No items in cloud database yet!</p>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs">Snap photos in shops and items will sync instantly to your mobile & PC.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
+        <div class="relative max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-3">
+                <h3 id="modalImageTitle" class="text-sm font-bold text-amber-400 truncate">Light Photo</h3>
+                <button onclick="closeImageModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[70vh]">
+                <img id="modalFullImage" src="" alt="Full view" class="max-h-[65vh] object-contain w-full">
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex flex-col items-center justify-center">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl flex flex-col items-center space-y-3">
+            <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+            <p id="loadingText" class="text-xs font-semibold text-amber-400">Processing cloud request...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-amber-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+        <div id="toastIcon" class="text-amber-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
+        <div>
+            <p id="toastTitle" class="text-xs font-bold text-amber-400">Success</p>
+            <p id="toastMsg" class="text-xs text-slate-300">Operation complete!</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // Permanently embedded Firebase configuration keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9DN_Rejyu4mJaBGPjBCDY3AG98vCPTZ4",
+            authDomain: "studio-7180408177-1e90e.firebaseapp.com",
+            projectId: "studio-7180408177-1e90e",
+            storageBucket: "studio-7180408177-1e90e.appspot.com",
+            messagingSenderId: "628394782459",
+            appId: "1:628394782459:web:85e4eb4993a46d6edca5e"
+        };
+
+        let db = null, storage = null;
+        let unsubscribeSnapshot = null;
+        let inventoryData = [];
+        let selectedImageFile = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initFirebaseDirectly();
+            calculateSalePrice();
+        });
+
+        function initFirebaseDirectly() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                storage = getStorage(app);
+                setupFirestoreListener();
+            } catch (err) {
+                console.error("Firebase init error:", err);
+                showToast('Connection Error', err.message || 'Failed to connect to Firebase.', 'error');
+            }
+        }
+
+        function setupFirestoreListener() {
+            if (!db) return;
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+            const collectionRef = collection(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory');
+            
+            unsubscribeSnapshot = onSnapshot(collectionRef, (snapshot) => {
+                inventoryData = [];
+                snapshot.forEach((docSnap) => {
+                    inventoryData.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                inventoryData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                renderTable();
+            }, (error) => {
+                console.error("Snapshot error:", error);
+            });
+        }
+
+        window.handleImageSelection = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedImageFile = file;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreviewTag').src = e.target.result;
+                document.getElementById('thumbnailContainer').classList.remove('hidden');
+                document.getElementById('photoFileName').textContent = file.name.substring(0, 15) + '... ✓';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.clearPhoto = function() {
+            selectedImageFile = null;
+            document.getElementById('lightPhoto').value = '';
+            document.getElementById('thumbnailContainer').classList.add('hidden');
+            document.getElementById('photoFileName').textContent = 'Tap to snap or upload';
+        }
+
+        window.calculateSalePrice = function() {
+            const buy = parseFloat(document.getElementById('buyPrice').value) || 0;
+            const margin = parseFloat(document.getElementById('marginPercent').value) || 0;
+            const sale = buy + (buy * (margin / 100));
+            document.getElementById('salePricePreview').textContent = '₹' + sale.toFixed(2);
+        }
+
+        window.handleFormSubmit = async function(event) {
+            event.preventDefault();
+            if (!db || !storage) {
+                showToast('Error', 'Firebase connection not initialized.', 'error');
+                return;
+            }
+
+            const name = document.getElementById('lightName').value.trim();
+            const length = document.getElementById('lightLength').value.trim() || '-';
+            const breadth = document.getElementById('lightBreadth').value.trim() || '-';
+            const buyPrice = parseFloat(document.getElementById('buyPrice').value) || 0;
+            const marginPercent = parseFloat(document.getElementById('marginPercent').value) || 0;
+            const salePrice = buyPrice + (buyPrice * (marginPercent / 100));
+            const editId = document.getElementById('editId').value;
+
+            showLoading(true, editId ? 'Updating cloud record...' : 'Uploading photo & saving to cloud...');
+
+            try {
+                let photoUrl = editId ? (inventoryData.find(i => i.id === editId)?.photoUrl || '') : '';
+
+                if (selectedImageFile) {
+                    const storageRef = ref(storage, `artifacts/diwali_lights_app/lights/${Date.now()}_${selectedImageFile.name}`);
+                    const uploadResult = await uploadBytes(storageRef, selectedImageFile);
+                    photoUrl = await getDownloadURL(uploadResult.ref);
+                }
+
+                const itemData = {
+                    name,
+                    length,
+                    breadth,
+                    buyPrice,
+                    marginPercent,
+                    salePrice,
+                    photoUrl,
+                    timestamp: new Date().toLocaleString(),
+                    createdAt: Date.now()
+                };
+
+                const collectionRef = collection(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory');
+
+                if (editId) {
+                    const docRef = doc(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory', editId);
+                    await updateDoc(docRef, itemData);
+                    showToast('Success', 'Cloud item updated successfully!');
+                } else {
+                    await addDoc(collectionRef, itemData);
+                    showToast('Success', 'Item uploaded to Firebase cloud!');
+                }
+
+                resetForm();
+            } catch (err) {
+                console.error("Save error:", err);
+                showToast('Save Failed', err.message || 'Could not save to cloud.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        window.resetForm = function() {
+            document.getElementById('itemForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-circle-plus"></i> Add New Light Item';
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload to Firebase Cloud';
+            document.getElementById('resetFormBtn').classList.add('hidden');
+            document.getElementById('marginPercent').value = '40';
+            clearPhoto();
+            calculateSalePrice();
+        }
+
+        window.editItem = function(id) {
+            const item = inventoryData.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('lightName').value = item.name;
+            document.getElementById('lightLength').value = item.length;
+            document.getElementById('lightBreadth').value = item.breadth;
+            document.getElementById('buyPrice').value = item.buyPrice;
+            document.getElementById('marginPercent').value = item.marginPercent;
+
+            if (item.photoUrl) {
+                document.getElementById('imagePreviewTag').src = item.photoUrl;
+                document.getElementById('thumbnailContainer').classList.remove('hidden');
+                document.getElementById('photoFileName').textContent = 'Cloud photo attached ✓';
+            } else {
+                clearPhoto();
+            }
+
+            document.getElementById('formTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Cloud Item';
+            document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Cloud Record';
+            document.getElementById('resetFormBtn').classList.remove('hidden');
+            calculateSalePrice();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.deleteItem = async function(id) {
+            if (!confirm('Are you sure you want to delete this item from the cloud database?')) return;
+            try {
+                showLoading(true, 'Deleting from cloud...');
+                const docRef = doc(db, 'artifacts', 'diwali_lights_app', 'public', 'data', 'inventory', id);
+                await deleteDoc(docRef);
+                showToast('Deleted', 'Item removed from cloud.');
+            } catch (err) {
+                console.error("Delete error:", err);
+                showToast('Error', 'Failed to delete item.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('inventoryTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+            tbody.innerHTML = '';
+
+            const filteredData = inventoryData.filter(item => 
+                (item.name || '').toLowerCase().includes(searchQuery)
+            );
+
+            let totalBuy = 0;
+            let totalSale = 0;
+            inventoryData.forEach(item => {
+                totalBuy += Number(item.buyPrice) || 0;
+                totalSale += Number(item.salePrice) || 0;
+            });
+
+            document.getElementById('statTotalItems').textContent = inventoryData.length;
+            document.getElementById('statTotalBuy').textContent = '₹' + totalBuy.toLocaleString('en-IN', {maximumFractionDigits: 2});
+            document.getElementById('statTotalSale').textContent = '₹' + totalSale.toLocaleString('en-IN', {maximumFractionDigits: 2});
+
+            if (filteredData.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filteredData.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition border-b border-slate-800/60";
+                
+                const photoThumb = item.photoUrl ? 
+                    `<img src="${item.photoUrl}" onclick="showImageModal('${item.photoUrl}', '${escapeAttr(item.name)}')" class="w-10 h-10 rounded-lg object-cover cursor-pointer hover:opacity-85 border border-slate-700 shadow-sm" title="Click to enlarge">` :
+                    `<span class="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-600 text-xs"><i class="fa-solid fa-image-slash"></i></span>`;
+
+                tr.innerHTML = `
+                    <td class="p-3">${photoThumb}</td>
+                    <td class="p-3 font-medium text-slate-100">
+                        <div class="line-clamp-1">${escapeHtml(item.name)}</div>
+                        <div class="text-[10px] text-slate-400">Added: ${item.timestamp || '-'}</div>
+                    </td>
+                    <td class="p-3 text-slate-300 whitespace-nowrap">${escapeHtml(item.length || '-')} × ${escapeHtml(item.breadth || '-')}</td>
+                    <td class="p-3 font-semibold text-amber-400">₹${Number(item.buyPrice).toFixed(2)}</td>
+                    <td class="p-3 text-slate-300">${item.marginPercent}%</td>
+                    <td class="p-3 font-bold text-emerald-400">₹${Number(item.salePrice).toFixed(2)}</td>
+                    <td class="p-3 text-center whitespace-nowrap">
+                        <button onclick="editItem('${item.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-1.5 rounded-lg text-xs transition mr-1" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteItem('${item.id}')" class="bg-slate-800 hover:bg-red-600/80 text-red-400 hover:text-white p-1.5 rounded-lg text-xs transition" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.exportToCSV = function() {
+            if (inventoryData.length === 0) {
+                showToast('Notice', 'No data available to export.', 'info');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "ID,Timestamp,Light Name,Length,Breadth,Buy Price (INR),Margin (%),Sale Price (INR),Photo URL\r\n";
+
+            inventoryData.forEach(item => {
+                const row = [
+                    item.id,
+                    `"${item.timestamp || ''}"`,
+                    `"${(item.name || '').replace(/"/g, '""')}"`,
+                    `"${item.length || ''}"`,
+                    `"${item.breadth || ''}"`,
+                    item.buyPrice || 0,
+                    item.marginPercent || 0,
+                    item.salePrice || 0,
+                    `"${item.photoUrl || ''}"`
+                ];
+                csvContent += row.join(",") + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Diwali_Lights_Cloud_Inventory_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Exported', 'Excel/CSV file downloaded successfully!');
+        }
+
+        window.showImageModal = function(src, title) {
+            document.getElementById('modalFullImage').src = src;
+            document.getElementById('modalImageTitle').textContent = title;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+
+        window.closeImageModal = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+        }
+
+        function showLoading(show, text = 'Processing...') {
+            const overlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').textContent = text;
+            if (show) overlay.classList.remove('hidden');
+            else overlay.classList.add('hidden');
+        }
+
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMsg').textContent = message;
+            
+            const iconDiv = document.getElementById('toastIcon');
+            if (type === 'error') {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
+            } else if (type === 'info') {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-info text-sky-400"></i>';
+            } else {
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check text-amber-400"></i>';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function escapeAttr(str) {
+            return (str || '').replace(/'/g, "");
+        }
+    </script>
+</body>
+</html>
