@@ -31,7 +31,7 @@
             <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Admin ID</label>
-                    <input type="text" id="adminUser" required placeholder="Enter Admin ID" 
+                    <input type="text" id="adminUser" required placeholder="Enter ID" 
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
                 </div>
                 <div>
@@ -181,7 +181,6 @@
                 </div>
             </section>
 
-            <!-- Right Data & Filter Section -->
             <section class="lg:col-span-7 flex flex-col space-y-4">
                 
                 <!-- Summary Stats -->
@@ -337,7 +336,7 @@
                 applyHeaderLogo(savedLogo);
             }
 
-            if (localStorage.getItem('admin_logged_in') === 'true') {
+            if (sessionStorage.getItem('admin_logged_in') === 'true') {
                 document.getElementById('loginModal').classList.add('hidden');
                 document.getElementById('mainAppContainer').classList.remove('hidden');
                 document.getElementById('mainAppContainer').classList.add('flex');
@@ -363,7 +362,7 @@
             const p = document.getElementById('adminPass').value.trim();
 
             if (u === 'shadow' && p === 'shadow') {
-                localStorage.setItem('admin_logged_in', 'true');
+                sessionStorage.setItem('admin_logged_in', 'true');
                 document.getElementById('loginModal').classList.add('hidden');
                 document.getElementById('mainAppContainer').classList.remove('hidden');
                 document.getElementById('mainAppContainer').classList.add('flex');
@@ -374,7 +373,7 @@
         }
 
         window.handleLogout = function() {
-            localStorage.removeItem('admin_logged_in');
+            sessionStorage.removeItem('admin_logged_in');
             document.getElementById('mainAppContainer').classList.add('hidden');
             document.getElementById('mainAppContainer').classList.remove('flex');
             document.getElementById('loginModal').classList.remove('hidden');
@@ -792,7 +791,7 @@
     <Cell ss:StyleID="Header"><Data ss:Type="String">Margin (%)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Sale Price (INR)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Photo Count</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Photos Data Link</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Photos Data</Data></Cell>
    </Row>`;
 
             inventoryData.forEach(item => {
