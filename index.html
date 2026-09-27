@@ -36,7 +36,7 @@
                     <i class="fa-solid fa-user-shield mr-1"></i> Admin Portal
                 </button>
                 <button type="button" id="tabStaffBtn" onclick="switchLoginMode('staff')" class="py-2 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-store mr-1"></i> Order Portal
+                    <i class="fa-solid fa-store mr-1"></i> Staff Portal
                 </button>
             </div>
 
@@ -53,18 +53,18 @@
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
                 </div>
                 <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition text-xs">
-                    Login Admin Portal
+                    Login
                 </button>
             </form>
 
             <!-- Staff Form (One Click) -->
             <div id="staffLoginForm" class="space-y-4 hidden pt-2">
-                <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 text-center space-y-1">
-                    <p class="text-xs text-blue-300 font-semibold">Store Field Staff Mode</p>
-                    <p class="text-[11px] text-slate-400">Capture sample photos and upload buy prices directly to the central database. No password required.</p>
+                <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-center space-y-1">
+                    <p class="text-xs text-emerald-300 font-semibold">Store Field Staff Mode</p>
+                    <p class="text-[11px] text-slate-400">Capture shop items, multi-photos, shop details, and prices. Your session view stays private to your current uploads.</p>
                 </div>
-                <button type="button" onclick="handleStaffLogin()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg transition text-xs text-white">
-                    <i class="fa-solid fa-mobile-screen-button mr-1.5"></i> Open Staff Portal & Start Work
+                <button type="button" onclick="handleStaffLogin()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition text-xs">
+                    <i class="fa-solid fa-mobile-screen-button mr-1.5"></i> Open Staff Field Portal
                 </button>
             </div>
         </div>
@@ -75,7 +75,7 @@
         <header class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 shadow-xl sticky top-0 z-40 border-b border-blue-500/30">
             <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <div onclick="document.getElementById('logoUploadInput').click()" class="w-12 h-12 rounded-xl bg-transparent flex items-center justify-center text-blue-200 shadow-sm font-bold overflow-hidden cursor-pointer relative group" title="Click to change logo">
+                    <div onclick="document.getElementById('logoUploadInput').click()" class="w-12 h-12 rounded-xl bg-transparent border border-white/20 flex items-center justify-center text-white shadow-sm font-bold overflow-hidden cursor-pointer relative group" title="Click to change logo">
                         <img id="headerLogoImg" src="" class="w-full h-full object-contain hidden">
                         <i id="headerLogoIcon" class="fa-solid fa-boxes-stacked text-xl"></i>
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-[9px] text-white">Change</div>
@@ -116,6 +116,20 @@
                     <form id="itemForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
                         <input type="hidden" id="editId" value="">
 
+                        <!-- Shop Name & Mobile Number (Sticky remembered values) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-300 mb-1"><i class="fa-solid fa-store text-blue-400 mr-1"></i> Shop Name *</label>
+                                <input type="text" id="shopName" required placeholder="e.g. Sharma Electricals" 
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-300 mb-1"><i class="fa-solid fa-phone text-emerald-400 mr-1"></i> Shop Mobile No.</label>
+                                <input type="tel" id="shopMobile" placeholder="e.g. 9876543210" 
+                                    class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500 transition">
+                            </div>
+                        </div>
+
                         <!-- Custom ID or Auto -->
                         <div>
                             <label class="block text-xs font-medium text-slate-300 mb-1">Item ID (Leave blank to auto-generate)</label>
@@ -123,7 +137,7 @@
                                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
                         </div>
 
-                        <!-- Item Name & Category -->
+                        <!-- Item Name & Category Dropdown with Custom Add -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-slate-300 mb-1">Item Name / Title *</label>
@@ -131,9 +145,18 @@
                                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Category</label>
-                                <input type="text" id="itemCategory" placeholder="e.g. Electronics, Hardware" 
-                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Category *</label>
+                                <select id="itemCategory" required onchange="handleCategoryChange(this)"
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition cursor-pointer">
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Hardware">Hardware</option>
+                                    <option value="Lighting">Lighting</option>
+                                    <option value="Tools">Tools</option>
+                                    <option value="General" selected>General</option>
+                                    <option value="ADD_NEW">+ Add New Category...</option>
+                                </select>
+                                <input type="text" id="customCategoryInput" placeholder="Type new category name..." 
+                                    class="w-full bg-slate-950 border border-blue-500 rounded-xl px-3.5 py-2 text-xs text-slate-100 mt-2 hidden focus:outline-none">
                             </div>
                         </div>
 
@@ -206,7 +229,7 @@
                 <!-- Summary Stats -->
                 <div class="grid grid-cols-3 gap-3">
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md">
-                        <p class="text-xs text-slate-400 mb-1">Total Items</p>
+                        <p class="text-xs text-slate-400 mb-1" id="statTotalItemsLabel">Total Items</p>
                         <p id="statTotalItems" class="text-lg sm:text-xl font-bold text-slate-100">0</p>
                     </div>
                     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md">
@@ -251,7 +274,7 @@
                             <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-800 z-10">
                                 <tr>
                                     <th class="p-3">Photos</th>
-                                    <th class="p-3">Item Details</th>
+                                    <th class="p-3">Item Details & Shop</th>
                                     <th class="p-3">Size/Specs</th>
                                     <th class="p-3">Buy (₹)</th>
                                     <th class="p-3">Margin</th>
@@ -269,8 +292,8 @@
                         <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 text-2xl mb-3">
                             <i class="fa-solid fa-cloud-arrow-down"></i>
                         </div>
-                        <p class="text-sm font-medium text-slate-300">No items found matching criteria!</p>
-                        <p class="text-xs text-slate-500 mt-1 max-w-xs">Upload items with multi-photos and manage your inventory seamlessly.</p>
+                        <p class="text-sm font-medium text-slate-300" id="emptyStateTitle">No items found matching criteria!</p>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs" id="emptyStateSub">Upload items with multi-photos and manage your inventory seamlessly.</p>
                     </div>
                 </div>
             </section>
@@ -339,6 +362,11 @@
         let inventoryData = [];
         let selectedImagesList = [];
         let currentUserRole = 'admin';
+        let staffSessionId = sessionStorage.getItem('staff_session_id');
+        if (!staffSessionId) {
+            staffSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2,7);
+            sessionStorage.setItem('staff_session_id', staffSessionId);
+        }
         
         const firebaseConfig = {
             apiKey: "AIzaSyB9DN_rEjyu4mJaBGPjBCDY3AG98vCPTZ4",
@@ -393,14 +421,14 @@
                 formAdmin.classList.remove('hidden');
                 formStaff.classList.add('hidden');
                 title.textContent = "Inventory Portal Access";
-                sub.textContent = "Select your portal mode to continue";
+                sub.textContent = "Enter your credentials to access inventory";
             } else {
                 tabStaff.className = "py-2 text-xs font-semibold rounded-lg transition bg-emerald-600 text-white shadow";
                 tabAdmin.className = "py-2 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white";
                 formStaff.classList.remove('hidden');
                 formAdmin.classList.add('hidden');
                 title.textContent = "Inventory Portal Access";
-                sub.textContent = "Select your portal mode to continue";
+                sub.textContent = "Enter your credentials to access inventory";
             }
         }
 
@@ -435,12 +463,22 @@
         function applyRoleUI() {
             const headerTitle = document.getElementById('appHeaderTitle');
             const headerSub = document.getElementById('appHeaderSubtitle');
+            const statLabel = document.getElementById('statTotalItemsLabel');
+            const emptyTitle = document.getElementById('emptyStateTitle');
+            const emptySub = document.getElementById('emptyStateSub');
+
             if (currentUserRole === 'staff') {
                 headerTitle.textContent = "Staff Field Collection Portal";
-                headerSub.textContent = "Store Enquiries & Price Uploads (Read-Only List)";
+                headerSub.textContent = "Store Enquiries & Price Uploads (Your Session View)";
+                statLabel.textContent = "Your Uploads";
+                emptyTitle.textContent = "No items uploaded in this session!";
+                emptySub.textContent = "Captured store items will show here instantly.";
             } else {
                 headerTitle.textContent = "Purchase & Inventory Hub";
                 headerSub.textContent = "Multi-Photo Inventory & Admin Management";
+                statLabel.textContent = "Total Items";
+                emptyTitle.textContent = "No items found matching criteria!";
+                emptySub.textContent = "Upload items with multi-photos and manage your inventory seamlessly.";
             }
             renderTable();
         }
@@ -453,6 +491,17 @@
             document.getElementById('adminUser').value = '';
             document.getElementById('adminPass').value = '';
             showToast('Logged Out', 'Successfully logged out.');
+        }
+
+        window.handleCategoryChange = function(selectEl) {
+            const customInput = document.getElementById('customCategoryInput');
+            if (selectEl.value === 'ADD_NEW') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+                customInput.value = '';
+            }
         }
 
         window.handleLogoChange = function(event) {
@@ -630,9 +679,26 @@
                 return;
             }
 
+            const shopName = document.getElementById('shopName').value.trim();
+            const shopMobile = document.getElementById('shopMobile').value.trim() || '-';
             const customIdInput = document.getElementById('customItemId').value.trim();
             const name = document.getElementById('itemName').value.trim();
-            const category = document.getElementById('itemCategory').value.trim() || 'General';
+            
+            let category = document.getElementById('itemCategory').value;
+            if (category === 'ADD_NEW') {
+                const customCat = document.getElementById('customCategoryInput').value.trim();
+                category = customCat ? customCat : 'General';
+                // Add to dropdown if not present
+                const selectEl = document.getElementById('itemCategory');
+                const opt = document.createElement('option');
+                opt.value = category;
+                opt.textContent = category;
+                selectEl.insertBefore(opt, selectEl.lastElementChild);
+                selectEl.value = category;
+                document.getElementById('customCategoryInput').classList.add('hidden');
+                document.getElementById('customCategoryInput').value = '';
+            }
+
             const length = document.getElementById('itemLength').value.trim() || '-';
             const breadth = document.getElementById('itemBreadth').value.trim() || '-';
             const buyPrice = parseFloat(document.getElementById('buyPrice').value) || 0;
@@ -657,6 +723,8 @@
                 const rawDateStr = `${yyyy}-${mm}-${dd}`;
 
                 const itemData = {
+                    shopName,
+                    shopMobile,
                     name,
                     category,
                     length,
@@ -668,14 +736,22 @@
                     timestamp: formattedDate,
                     rawDate: rawDateStr,
                     createdAt: Date.now(),
-                    uploadedBy: currentUserRole
+                    uploadedBy: currentUserRole,
+                    staffSessionId: currentUserRole === 'staff' ? staffSessionId : 'admin_hub'
                 };
 
                 const docRef = doc(db, 'lights_inventory', itemId);
                 await setDoc(docRef, itemData);
 
                 showToast('Success', editId ? 'Cloud record updated!' : 'Saved to cloud successfully!');
+                
+                // Keep shopName and shopMobile for next item convenience
+                const savedShop = shopName;
+                const savedMobile = shopMobile;
                 resetForm();
+                document.getElementById('shopName').value = savedShop;
+                document.getElementById('shopMobile').value = savedMobile;
+
             } catch (err) {
                 console.error("Cloud save error:", err);
                 showToast('Save Failed', 'Check Firestore rules in Firebase console.', 'error');
@@ -692,6 +768,8 @@
             document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Save to Firebase Cloud';
             document.getElementById('resetFormBtn').classList.add('hidden');
             document.getElementById('marginPercent').value = '40';
+            document.getElementById('itemCategory').value = 'General';
+            document.getElementById('customCategoryInput').classList.add('hidden');
             selectedImagesList = [];
             updateThumbnailsUI();
             calculateSalePrice();
@@ -708,8 +786,26 @@
             document.getElementById('editId').value = item.id;
             document.getElementById('customItemId').value = item.id;
             document.getElementById('customItemId').disabled = true;
+            document.getElementById('shopName').value = item.shopName || '';
+            document.getElementById('shopMobile').value = item.shopMobile || '';
             document.getElementById('itemName').value = item.name;
-            document.getElementById('itemCategory').value = item.category || '';
+            
+            const catSelect = document.getElementById('itemCategory');
+            let catFound = false;
+            for(let i=0; i<catSelect.options.length; i++) {
+                if(catSelect.options[i].value === item.category) {
+                    catFound = true;
+                    break;
+                }
+            }
+            if(!catFound && item.category) {
+                const opt = document.createElement('option');
+                opt.value = item.category;
+                opt.textContent = item.category;
+                catSelect.insertBefore(opt, catSelect.lastElementChild);
+            }
+            catSelect.value = item.category || 'General';
+
             document.getElementById('itemLength').value = item.length;
             document.getElementById('itemBreadth').value = item.breadth;
             document.getElementById('buyPrice').value = item.buyPrice;
@@ -762,9 +858,18 @@
 
             tbody.innerHTML = '';
 
-            const filteredData = inventoryData.filter(item => {
+            // Filter data based on role: Staff see only their session uploads, Admin sees all
+            const baseData = inventoryData.filter(item => {
+                if (currentUserRole === 'staff') {
+                    return item.staffSessionId === staffSessionId;
+                }
+                return true;
+            });
+
+            const filteredData = baseData.filter(item => {
                 const matchesSearch = (item.name || '').toLowerCase().includes(searchQuery) ||
                                       (item.category || '').toLowerCase().includes(searchQuery) ||
+                                      (item.shopName || '').toLowerCase().includes(searchQuery) ||
                                       (item.id || '').toLowerCase().includes(searchQuery);
                 
                 if (!matchesSearch) return false;
@@ -816,6 +921,7 @@
                 }
 
                 let displayTime = item.timestamp || '-';
+                let shopDisplay = item.shopName ? `<div class="text-[10px] text-emerald-400"><i class="fa-solid fa-store mr-1"></i>${escapeHtml(item.shopName)} ${item.shopMobile ? '('+escapeHtml(item.shopMobile)+')' : ''}</div>` : '';
 
                 let actionsHTML = '';
                 if (currentUserRole === 'admin') {
@@ -838,6 +944,7 @@
                     <td class="p-3 font-medium text-slate-100">
                         <div class="line-clamp-1 font-bold">${escapeHtml(item.name)}</div>
                         <div class="text-[10px] text-blue-400">ID: ${escapeHtml(item.id)} • ${escapeHtml(item.category || 'General')}</div>
+                        ${shopDisplay}
                         <div class="text-[10px] text-slate-400">Added: ${displayTime}</div>
                     </td>
                     <td class="p-3 text-slate-300 whitespace-nowrap">${escapeHtml(item.length || '-')} × ${escapeHtml(item.breadth || '-')}</td>
@@ -851,7 +958,14 @@
         }
 
         window.exportToExcel = function() {
-            if (inventoryData.length === 0) {
+            const baseData = inventoryData.filter(item => {
+                if (currentUserRole === 'staff') {
+                    return item.staffSessionId === staffSessionId;
+                }
+                return true;
+            });
+
+            if (baseData.length === 0) {
                 showToast('Notice', 'No data available to export.', 'info');
                 return;
             }
@@ -891,6 +1005,8 @@
    <Row>
     <Cell ss:StyleID="Header"><Data ss:Type="String">ID</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Timestamp (DD-MM-YYYY HH:MM:SS)</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Shop Name</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Shop Mobile</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Item Name</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Category</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Size</Data></Cell>
@@ -899,11 +1015,10 @@
     <Cell ss:StyleID="Header"><Data ss:Type="String">Margin (%)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Sale Price (INR)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Photo Count</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Photos Link Note</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Uploaded Role</Data></Cell>
    </Row>`;
 
-            inventoryData.forEach(item => {
+            baseData.forEach(item => {
                 let timeStr = item.timestamp || '';
                 const photosArr = item.photos || (item.photoUrl ? [item.photoUrl] : []);
 
@@ -911,6 +1026,8 @@
    <Row>
     <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.id)}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(timeStr)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.shopName || '')}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.shopMobile || '')}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.name)}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.category || 'General')}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.length || '')}</Data></Cell>
@@ -919,7 +1036,6 @@
     <Cell ss:StyleID="RowData"><Data ss:Type="Number">${Number(item.marginPercent || 0)}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="Number">${Number(item.salePrice || 0)}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="Number">${photosArr.length}</Data></Cell>
-    <Cell ss:StyleID="RowData"><Data ss:Type="String">Photo attached in app</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(item.uploadedBy || 'admin')}</Data></Cell>
    </Row>`;
             });
