@@ -17,7 +17,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-full flex flex-col justify-between">
 
-    <!-- Admin Login Modal (Appears on fresh load/session restart) -->
+    <!-- Admin Login Modal (Asks every session/tab open) -->
     <div id="loginModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-5">
             <div class="text-center space-y-1">
@@ -788,7 +788,7 @@
     <Cell ss:StyleID="Header"><Data ss:Type="String">Margin (%)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Sale Price (INR)</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">Photo Count</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Photos Data Link</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Photos Info</Data></Cell>
    </Row>`;
 
             inventoryData.forEach(item => {
@@ -807,10 +807,7 @@
                 }
 
                 const photosArr = item.photos || (item.photoUrl ? [item.photoUrl] : []);
-                const photoStr = photosArr.length > 0 ? photosArr[0] : '';
-                
-                // Using ss:Formula to ensure Excel evaluates it as a clickable hyperlink formula
-                const excelFormula = photoStr ? `=HYPERLINK("${photoStr}", "Click to View Photo")` : "No Photo";
+                const photoDesc = photosArr.length > 0 ? `${photosArr.length} Photo(s) Attached (View in App)` : "No Photo";
 
                 xmlHeader += `
    <Row>
@@ -824,7 +821,7 @@
     <Cell ss:StyleID="RowData"><Data ss:Type="Number">${Number(item.marginPercent || 0)}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="Number">${Number(item.salePrice || 0)}</Data></Cell>
     <Cell ss:StyleID="RowData"><Data ss:Type="Number">${photosArr.length}</Data></Cell>
-    <Cell ss:StyleID="RowData" ss:Formula="${escapeXml(excelFormula)}"><Data ss:Type="String">${escapeXml(excelFormula)}</Data></Cell>
+    <Cell ss:StyleID="RowData"><Data ss:Type="String">${escapeXml(photoDesc)}</Data></Cell>
    </Row>`;
             });
 
@@ -842,7 +839,7 @@
             link.click();
             document.body.removeChild(link);
 
-            showToast('Exported', 'Styled Excel workbook with active clickable photo hyperlinks downloaded successfully!');
+            showToast('Exported', 'Styled Excel workbook downloaded successfully!');
         }
 
         window.showImageModalFromList = function(encodedJson, title) {
