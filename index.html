@@ -91,21 +91,21 @@
                         <span id="salePricePreview" class="text-base sm:text-lg font-bold text-amber-400">₹0.00</span>
                     </div>
 
-                    <!-- Photo Upload / Capture Option -->
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Light Photo (Choose Gallery or Camera)</label>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Light Photo</label>
                         <div class="flex items-center gap-3">
-                            <label class="flex-1 cursor-pointer bg-slate-950 hover:bg-slate-900 border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-3 text-center transition flex items-center justify-center gap-2 text-xs text-slate-300">
-                                <i class="fa-solid fa-image text-amber-400 text-base"></i>
-                                <span id="photoFileName">Upload from Gallery or Camera</span>
-                                <!-- Note: Removed capture="environment" to allow both gallery selection and camera capture on mobile -->
-                                <input type="file" id="lightPhoto" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
-                            </label>
+                            <button type="button" onclick="openPhotoSourceModal()" class="flex-1 bg-slate-950 hover:bg-slate-900 border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-3 text-center transition flex items-center justify-center gap-2 text-xs text-slate-300">
+                                <i class="fa-solid fa-camera text-amber-400 text-base"></i>
+                                <span id="photoFileName">Tap to Capture or Choose Gallery</span>
+                            </button>
                             <div id="thumbnailContainer" class="hidden relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-950 flex-shrink-0">
                                 <img id="imagePreviewTag" src="" alt="Preview" class="w-full h-full object-cover">
                                 <button type="button" onclick="clearPhoto()" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] w-4 h-4 rounded-bl flex items-center justify-center">×</button>
                             </div>
                         </div>
+                        <!-- Hidden file inputs for direct camera or gallery triggers -->
+                        <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelection(event)">
+                        <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="handleImageSelection(event)">
                     </div>
 
                     <!-- Submit Button -->
@@ -121,7 +121,6 @@
             </div>
         </section>
 
-        <!-- Right Data Column -->
         <section class="lg:col-span-7 flex flex-col space-y-4">
             
             <!-- Summary Stats -->
@@ -184,6 +183,24 @@
         </section>
     </main>
 
+    <!-- Photo Source Modal (Camera vs Gallery) -->
+    <div id="photoSourceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closePhotoSourceModal()">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xs p-5 shadow-2xl space-y-3" onclick="event.stopPropagation()">
+            <div class="text-center pb-2 border-b border-slate-800">
+                <h3 class="text-sm font-bold text-amber-400">Select Photo Source</h3>
+                <p class="text-[11px] text-slate-400">Choose camera or photo library</p>
+            </div>
+            <button type="button" onclick="triggerCamera()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs shadow transition">
+                <i class="fa-solid fa-camera"></i> Take Camera Photo
+            </button>
+            <button type="button" onclick="triggerGallery()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs transition border border-slate-700">
+                <i class="fa-solid fa-image"></i> Choose from Gallery
+            </button>
+            <button type="button" onclick="closePhotoSourceModal()" class="w-full text-slate-400 hover:text-white text-xs py-1 mt-1">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Image Modal for Full View -->
     <div id="imageModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
         <div class="relative max-w-lg w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -196,6 +213,7 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex flex-col items-center justify-center">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl flex flex-col items-center space-y-3">
             <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
@@ -203,6 +221,7 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-amber-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
         <div id="toastIcon" class="text-amber-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
         <div>
@@ -266,6 +285,25 @@
             });
         }
 
+        // Photo source modal controller
+        window.openPhotoSourceModal = function() {
+            document.getElementById('photoSourceModal').classList.remove('hidden');
+        }
+
+        window.closePhotoSourceModal = function() {
+            document.getElementById('photoSourceModal').classList.add('hidden');
+        }
+
+        window.triggerCamera = function() {
+            closePhotoSourceModal();
+            document.getElementById('cameraInput').click();
+        }
+
+        window.triggerGallery = function() {
+            closePhotoSourceModal();
+            document.getElementById('galleryInput').click();
+        }
+
         window.handleImageSelection = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -282,9 +320,10 @@
 
         window.clearPhoto = function() {
             selectedImageFile = null;
-            document.getElementById('lightPhoto').value = '';
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('galleryInput').value = '';
             document.getElementById('thumbnailContainer').classList.add('hidden');
-            document.getElementById('photoFileName').textContent = 'Upload from Gallery or Camera';
+            document.getElementById('photoFileName').textContent = 'Tap to Capture or Choose Gallery';
         }
 
         window.calculateSalePrice = function() {
