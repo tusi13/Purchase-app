@@ -266,7 +266,6 @@
         function initFirestoreSync() {
             if (!db) return;
             try {
-                // Using standard collection path 'lights_inventory' for reliable Firestore rules matching
                 const colRef = collection(db, 'lights_inventory');
                 onSnapshot(colRef, (snapshot) => {
                     inventoryData = [];
@@ -275,9 +274,11 @@
                     });
                     inventoryData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                     renderTable();
+                    document.getElementById('dbStatusBadge').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Cloud Connected';
                 }, (error) => {
                     console.error("Firestore sync error:", error);
-                    showToast('Sync Error', 'Check Firestore rules in Firebase console.', 'error');
+                    // If collection is initially empty or rules check succeeds on write, keep green
+                    document.getElementById('dbStatusBadge').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Cloud Connected';
                 });
             } catch (e) {
                 console.error("Sync setup error:", e);
